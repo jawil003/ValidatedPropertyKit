@@ -54,4 +54,20 @@ class ValidationStringTests: XCTestCase {
         XCTAssertFalse(validation2.isValid(value: invalidString))
     }
     
+    func testIsNotEmptyAndEmail() {
+        let emailString = "test@email.com"
+        let invalidString = ""
+        
+        let validator = Validated<String>(wrappedValue: invalidString, [!Validation.isEmpty, Validation.isEmail])
+        
+        XCTAssertTrue(!validator.isValid)
+        
+        validator.wrappedValue = emailString
+        
+        XCTAssertTrue(validator.isValid)
+    }
+
+    
 }
+
+

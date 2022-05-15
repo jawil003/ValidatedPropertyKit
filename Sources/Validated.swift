@@ -18,7 +18,7 @@ public struct Validated<Value>: DynamicProperty, Validatable {
     // MARK: Properties
     
     /// The Storage
-    @StateObject
+    @ObservedObject
     private var storage: Storage
     
     /// The Validation
@@ -164,7 +164,7 @@ private extension Validated {
         var validation: [Validation<Value>] = []
         
         /// The Failed Validations
-        var errorValidations: [Validation<Value>] = []
+        @Published var errorValidations: [Validation<Value>] = []
         
         /// Bool value if validated value is valid
         var isValid: Bool

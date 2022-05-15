@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 // MARK: - Validation
 
@@ -16,19 +17,21 @@ public struct Validation<Value> {
     // MARK: Typealias
     
     /// The validation predicate typealias representing a `(Value) -> Bool` closure
-    public typealias Predicate = (Value) -> Bool
+    public typealias Predicate<T> = (Value) -> T
     
     // MARK: Properties
     
     /// The Predicate
-    private let predicate: Predicate
+    private let predicate: Predicate<Bool>
+    public let message: LocalizedStringKey?
     
     // MARK: Initializer
     
     /// Designated Initializer
-    /// - Parameter predicate: The Predicate
-    public init(predicate: @escaping Predicate) {
+    /// - Parameter predicate: The PredicateWithMessage
+    public init(predicate: @escaping Predicate<Bool>, message: LocalizedStringKey? = nil) {
         self.predicate = predicate
+        self.message = message
     }
     
     /// Validates a value and returns a Bool wether the value is valid or not
