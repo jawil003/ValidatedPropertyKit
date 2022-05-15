@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-extension Validation where Value == Date {
+public extension Validation where Value == Date {
     
     static func isFuture(message: LocalizedStringKey? = nil) -> Self {
         .init(predicate: { value in
