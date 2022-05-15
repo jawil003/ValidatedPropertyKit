@@ -22,8 +22,12 @@ public struct Validated<Value>: DynamicProperty, Validatable {
     private var storage: Storage
     
     /// The Validation
-    public var validation: Validation<Value> {
+    public var validations: [Validation<Value>] {
         self.storage.validation
+    }
+    
+    public var errorValidations: [Validation<Value>] {
+        self.storage.errorValidations
     }
     
     /// Bool value if validated value is valid
@@ -75,6 +79,18 @@ public struct Validated<Value>: DynamicProperty, Validatable {
         )
     }
     
+    public init(
+        wrappedValue: Value,
+        _ validation: [Validation<Value>]
+    ) {
+        self._storage = .init(
+            wrappedValue: .init(
+                value: wrappedValue,
+                validations: validation
+            )
+        )
+    }
+    
     // MARK: Update Validation
     
     /// Update the Validation
@@ -83,10 +99,10 @@ public struct Validated<Value>: DynamicProperty, Validatable {
     ///   - validation: The new Validation
     public mutating func update(
         reValidateValue: Bool = true,
-        validation: (Validation<Value>) -> Validation<Value>
+        validations: ([Validation<Value>]) -> [Validation<Value>]
     ) {
         // Update Validation
-        self.storage.validation = validation(self.validation)
+        self.storage.validation = validations(self.validations)
         // Verify if value should be re-validated
         guard reValidateValue else {
             // Otherwise return out of function
@@ -145,7 +161,10 @@ private extension Validated {
         }
         
         /// The Validation
-        var validation: Validation<Value>
+        var validation: [Validation<Value>] = []
+        
+        /// The Failed Validations
+        var errorValidations: [Validation<Value>] = []
         
         /// Bool value if validated value is valid
         var isValid: Bool
@@ -161,17 +180,57 @@ private extension Validated {
             validation: Validation<Value>
         ) {
             self.value = value
-            self.validation = validation
-            self.isValid = self.validation.isValid(value: self.value)
+            self.validation.append(validation)
+        
+            self.isValid = validation.isValid(value: self.value)
+        }
+        
+        /// Designated Initializer
+        /// - Parameters:
+        ///   - value: The Value
+        ///   - validation: The Validations
+        init(
+            value: Value,
+            validations: [Validation<Value>]
+        ) {
+            self.value = value
+            self.validation = validations
+            var isValid = true
+        
+            for v in validation {
+                isValid = v.isValid(value: self.value)
+            }
+            
+            self.isValid = isValid
         }
         
         // MARK: Validate
         
         /// Perform Validation
         func validate() {
+            
+            // Reset state
+            
+            errorValidations = []
+            
             // Validate value
-            self.isValid = self.validation.isValid(value: self.value)
+            
+            var isValid = true
+        
+            for v in validation {
+                let localIsValid = v.isValid(value: self.value)
+                
+                if !localIsValid {
+                    self.errorValidations.append(v)
+                }
+                
+                isValid = localIsValid
+            }
+            
+            self.isValid = isValid
         }
+        
+        
         
     }
     
