@@ -25,4 +25,18 @@ public extension View {
         )
     }
     
+    func validate(
+        _ validatables: Validatable..., validationFunc: (Bool) -> Void
+    ) -> some View {
+        let res =
+            validatables
+                .map(\.isValid)
+                .contains(false)
+    
+        validationFunc(res)
+        
+        return self
+        
+    }
+    
 }
