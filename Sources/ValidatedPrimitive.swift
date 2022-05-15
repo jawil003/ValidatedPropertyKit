@@ -8,12 +8,12 @@
 import Foundation
 import Combine
 
-@propertyWrapper
 public struct ValidatedPrimitive<Value> {
     
     public var wrappedValue: Value {
         didSet {
             self.isValid = self.validate(value: self.wrappedValue)
+            self.onChange?(self.isValid, self.errorValidations)
         }
     }
     public var isValid: Bool
@@ -21,20 +21,27 @@ public struct ValidatedPrimitive<Value> {
     private var validations: [Validation<Value>] = []
     public var errorValidations: [Validation<Value>] = []
     
+    public var onChange: ((Bool, [Validation<Value>])-> Void)?
+    
     public init(
         wrappedValue: Value,
-        _ validation: Validation<Value>
+        _ validation: Validation<Value>,
+        onChange: ((Bool, [Validation<Value>])-> Void)? = nil
+        
     ) {
         self.wrappedValue = wrappedValue
         self.validations = [validation]
         self.isValid = true
+        self.onChange = onChange
         self.isValid = validate(value: wrappedValue)
+       
     }
     
-    public init(wrappedValue: Value, _ validations: [Validation<Value>]) {
+    public init(wrappedValue: Value, _ validations: [Validation<Value>], onChange: ((Bool, [Validation<Value>])-> Void)? = nil) {
         self.wrappedValue = wrappedValue
         self.validations = validations
         self.isValid = true
+        self.onChange = onChange
         self.isValid = validate(value: wrappedValue)
     }
     

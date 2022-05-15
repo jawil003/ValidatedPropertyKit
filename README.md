@@ -38,10 +38,12 @@
 
 <br/>
 
+With Properties:
+
 ```swift
 struct LoginView: View {
     
-    @Validated(!.isEmpty && .isEmail)
+    @Validated([!.isEmpty, .isEmail])
     var mailAddress = String()
     
     @Validated(.range(8...))
@@ -50,6 +52,7 @@ struct LoginView: View {
     var body: some View {
         List {
             TextField("E-Mail", text: self.$mailAddress)
+            Text(self.mailAddress.errorValidations)
             TextField("Password", text: self.$password)
             Button(
                 action: {
@@ -67,6 +70,29 @@ struct LoginView: View {
     }
     
 }
+```
+
+With Class Objects:
+
+```swift
+struct LoginView: View {
+    
+    @StateObject var item = ExampleStateClassObject()
+    
+    var body: some View {
+        List {
+            TextField("E-Mail", text: Binding(get: {item.name.wrappedValue}, set: {newValue
+                        in item.name.wrappedValue = newValue}))
+            Text(self.mailAddress.errorValidations)
+            .validated(
+                self._mailAddress,
+                self._password
+            )
+        }
+    }
+    
+}
+
 ```
 
 ## Features
