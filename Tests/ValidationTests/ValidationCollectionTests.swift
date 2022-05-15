@@ -14,7 +14,7 @@ class ValidationCollectionTests: XCTestCase {
     func testNonEmpty() {
         let validStrings = ["1"]
         let invalidStrings: [String] = .init()
-        let validation = !Validation<[String]>.isEmpty
+        let validation = !Validation<[String]>.isEmpty()
         XCTAssert(validation.isValid(value: validStrings))
         XCTAssertFalse(validation.isValid(value: invalidStrings))
     }

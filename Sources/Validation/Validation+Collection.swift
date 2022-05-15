@@ -7,26 +7,27 @@
 //
 
 import Foundation
+import SwiftUI
 
 // MARK: - Validation+Collection
 
 public extension Validation where Value: Collection {
     
     /// The isEmpty Validation
-    static var isEmpty: Self {
-        .init { value in
+    static func isEmpty(message: LocalizedStringKey? = nil) -> Self {
+        .init (predicate: { value in
             value.isEmpty
-        }
+        }, message: message)
     }
     
     /// Validation with RangeExpression
     /// - Parameter range: The RangeExpression
     static func range<R: RangeExpression>(
-        _ range: R
+        _ range: R, message: LocalizedStringKey? = nil
     ) -> Self where R.Bound == Int {
-        .init { value in
+        .init (predicate: { value in
             range.contains(value.count)
-        }
+        }, message: message)
     }
     
 }

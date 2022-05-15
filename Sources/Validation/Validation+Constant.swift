@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 // MARK: - Validation+Constant
 
@@ -15,9 +16,9 @@ public extension Validation {
     /// Constant Validation which always evalutes to a given Bool value
     /// - Parameter isValid: The isValid Bool value
     static func constant(
-        _ isValid: Bool
+        _ isValid: Bool, message: LocalizedStringKey? = nil
     ) -> Self {
-        .init { _ in isValid }
+        .init (predicate: { _ in isValid }, message: message)
     }
     
 }
