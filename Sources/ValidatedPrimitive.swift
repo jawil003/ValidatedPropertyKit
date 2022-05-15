@@ -19,7 +19,7 @@ public struct ValidatedPrimitive<Value> {
     public var isValid: Bool
     
     private var validations: [Validation<Value>] = []
-    var errorValidations: [Validation<Value>] = []
+    public var errorValidations: [Validation<Value>] = []
     
     public init(wrappedValue: Value, _ validations: [Validation<Value>]) {
         self.wrappedValue = wrappedValue
@@ -28,7 +28,7 @@ public struct ValidatedPrimitive<Value> {
         self.isValid = validate(value: wrappedValue)
     }
     
-    mutating func validate(value: Value) -> Bool {
+    public mutating func validate(value: Value) -> Bool {
         var valid = true
         
         for v in validations {
