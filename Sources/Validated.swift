@@ -17,47 +17,35 @@ public struct Validated<Value>: DynamicProperty, Validatable {
     
     // MARK: Properties
     
-    /// The Storage
-    @StateObject
-    private var storage: Storage
+    @State public var isValid: Bool = true
+    @State private var value: Value
     
-    /// The Validation
-    public var validations: [Validation<Value>] {
-        self.storage.validation
-    }
+    private var validations: [Validation<Value>] = []
     
-    public var errorValidations: [Validation<Value>] {
-        self.storage.errorValidations
-    }
-    
-    /// Bool value if validated value is valid
-    public var isValid: Bool {
-        self.storage.isValid
-    }
+    @State var errorValidations: [Validation<Value>] = []
     
     // MARK: PropertyWrapper-Properties
     
     /// The projected `Binding<Value>`
     public var projectedValue: Binding<Value> {
-        .init(
-            get: {
-                self.wrappedValue
-            },
-            set: { newValue in
-                self.wrappedValue = newValue
-            }
-        )
+        get {
+            self._value.projectedValue
+        }
+        set {
+            self._value.wrappedValue = newValue.wrappedValue
+        }
     }
     
     /// The wrapped Value
     public var wrappedValue: Value {
         get {
             // Return value
-            self.storage.value
+            self.value
         }
         nonmutating set {
             // Update value
-            self.storage.value = newValue
+            self.value = newValue
+            self.isValid = self.validate(value: self.value)
         }
     }
     
@@ -71,24 +59,18 @@ public struct Validated<Value>: DynamicProperty, Validatable {
         wrappedValue: Value,
         _ validation: Validation<Value>
     ) {
-        self._storage = .init(
-            wrappedValue: .init(
-                value: wrappedValue,
-                validation: validation
-            )
-        )
+        self._value = State(wrappedValue: wrappedValue)
+        self.validations = [validation]
+        self.isValid = validate(value: wrappedValue)
     }
     
     public init(
         wrappedValue: Value,
-        _ validation: [Validation<Value>]
+        _ validations: [Validation<Value>]
     ) {
-        self._storage = .init(
-            wrappedValue: .init(
-                value: wrappedValue,
-                validations: validation
-            )
-        )
+        self._value = State(wrappedValue: wrappedValue)
+        self.validations = validations
+        self.isValid = validate(value: wrappedValue)
     }
     
     // MARK: Update Validation
@@ -102,14 +84,32 @@ public struct Validated<Value>: DynamicProperty, Validatable {
         validations: ([Validation<Value>]) -> [Validation<Value>]
     ) {
         // Update Validation
-        self.storage.validation = validations(self.validations)
+        self.validations = validations(self.validations)
         // Verify if value should be re-validated
         guard reValidateValue else {
             // Otherwise return out of function
             return
         }
         // Perform Validation
-        self.storage.validate()
+        self.isValid = self.validate(value: self.value)
+    }
+    
+    func validate(value: Value) -> Bool {
+        errorValidations = []
+        
+        var isValid = true
+        
+        for v in validations {
+            let localValid = v.isValid(value: value)
+            
+            if !localValid {
+                errorValidations.append(v)
+            }
+            
+            isValid = localValid
+        }
+        
+        return isValid
     }
     
 }
@@ -135,103 +135,6 @@ public extension Validated where Value: Optionalable {
                     ?? nilValidation.isValid(value: ())
             }
         )
-    }
-    
-}
-
-// MARK: - Storage
-
-private extension Validated {
-    
-    /// The Storage
-    final class Storage: ObservableObject {
-        
-        // MARK: Properties
-        
-        /// The Value
-        var value: Value {
-            willSet {
-                // Emit on ObjectWillChange Subject
-                self.objectWillChange.send()
-            }
-            didSet {
-                // Perform Validation
-                self.validate()
-            }
-        }
-        
-        /// The Validation
-        var validation: [Validation<Value>] = []
-        
-        /// The Failed Validations
-        @Published var errorValidations: [Validation<Value>] = []
-        
-        /// Bool value if validated value is valid
-        var isValid: Bool
-        
-        // MARK: Initializer
-        
-        /// Designated Initializer
-        /// - Parameters:
-        ///   - value: The Value
-        ///   - validation: The Validation
-        init(
-            value: Value,
-            validation: Validation<Value>
-        ) {
-            self.value = value
-            self.validation.append(validation)
-        
-            self.isValid = validation.isValid(value: self.value)
-        }
-        
-        /// Designated Initializer
-        /// - Parameters:
-        ///   - value: The Value
-        ///   - validation: The Validations
-        init(
-            value: Value,
-            validations: [Validation<Value>]
-        ) {
-            self.value = value
-            self.validation = validations
-            var isValid = true
-        
-            for v in validation {
-                isValid = v.isValid(value: self.value)
-            }
-            
-            self.isValid = isValid
-        }
-        
-        // MARK: Validate
-        
-        /// Perform Validation
-        func validate() {
-            
-            // Reset state
-            
-            errorValidations = []
-            
-            // Validate value
-            
-            var isValid = true
-        
-            for v in validation {
-                let localIsValid = v.isValid(value: self.value)
-                
-                if !localIsValid {
-                    self.errorValidations.append(v)
-                }
-                
-                isValid = localIsValid
-            }
-            
-            self.isValid = isValid
-        }
-        
-        
-        
     }
     
 }
