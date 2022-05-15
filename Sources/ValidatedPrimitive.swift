@@ -9,7 +9,7 @@ import Foundation
 import Combine
 
 @propertyWrapper
-struct ValidatedPrimitive<Value> {
+public struct ValidatedPrimitive<Value> {
     
     public var wrappedValue: Value {
         didSet {
