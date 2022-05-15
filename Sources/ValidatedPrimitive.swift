@@ -21,7 +21,7 @@ public struct ValidatedPrimitive<Value> {
     private var validations: [Validation<Value>] = []
     var errorValidations: [Validation<Value>] = []
     
-    init(wrappedValue: Value, _ validations: [Validation<Value>]) {
+    public init(wrappedValue: Value, _ validations: [Validation<Value>]) {
         self.wrappedValue = wrappedValue
         self.validations = validations
         self.isValid = true
