@@ -54,4 +54,9 @@ public struct ValidatedPrimitive<Value> {
         
         return valid
     }
+    
+    public mutating func validate() -> Void {
+        
+        self.isValid =  self.validate(value: self.wrappedValue)
+    }
 }
